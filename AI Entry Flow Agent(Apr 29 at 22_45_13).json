@@ -1,0 +1,850 @@
+{
+  "updatedAt": "2026-04-29T21:51:38.152Z",
+  "createdAt": "2026-04-29T17:43:59.839Z",
+  "id": "xqhUPC7pBShvnMZt",
+  "name": "AI Entry Flow Agent",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "QA Submission",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name"
+            },
+            {
+              "fieldLabel": "Email"
+            },
+            {
+              "fieldLabel": "Question"
+            },
+            {
+              "fieldLabel": "Answer",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        32,
+        -96
+      ],
+      "id": "11918acd-519a-4c32-a57e-2820ba45fb5c",
+      "name": "On form submission",
+      "webhookId": "6f822e0d-ed9d-4e55-b973-3ace780d20c2",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6cf4463c-aabf-4d5d-9530-af1e666ef403",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "=n8n.io",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        256,
+        -96
+      ],
+      "id": "bfd2f852-adea-4dae-9845-c2c5eaf0fef3",
+      "name": "is n8n.io email?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "843f97e7-7cfd-42d4-ad4b-4bf339573689",
+              "name": "IsTrusted",
+              "value": "={{ true }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -192
+      ],
+      "id": "363279ce-0d22-48f7-8ebd-002f1f015feb",
+      "name": "IsTrusted True?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "843f97e7-7cfd-42d4-ad4b-4bf339573689",
+              "name": "IsTrusted",
+              "value": "={{ false}}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        0
+      ],
+      "id": "6b216c4d-61b5-48ff-9ee6-57dc2f430d3d",
+      "name": "IsTrusted False?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -96
+      ],
+      "id": "4bebbaf7-723d-4d59-891f-30b996e2bb62",
+      "name": "ref"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1008,
+        128
+      ],
+      "id": "5b2cc93d-621f-4bb6-a8ac-a876cdac4f52",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "23ouBWU1rOfp5m2X",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following question and answer and output relevant tags\n\nQuestion: {{ $json.Question }}\n\nAnswer: {{ $json.Answer }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You  are a content tagging expert. Your task is to analyze Question and Answer submission and generate relevant descriptive tags that categorize the content based on topic, key concepts, and technical terms. Always provide 4-8 tags as a comma separated list. Keep tags short and focused in individual length.\n\nExample Output:\npartner, partnerships, agency, external contractors, lead referral"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        928,
+        -96
+      ],
+      "id": "c3f418f8-a983-4e8c-a9d1-99f4226fed06",
+      "name": "Add Tags"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "F1t9Pks7l4HclDri",
+          "mode": "list",
+          "cachedResultName": "AI Entry Flow Agent",
+          "cachedResultUrl": "/projects/zwrmZYtvxhiK7V6V/datatables/F1t9Pks7l4HclDri"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "IsTrusted": "={{ $('IsTrusted True?').item.json.IsTrusted }}",
+            "Name": "={{ $('IsTrusted True?').item.json.Name }}",
+            "Email": "={{ $('ref').item.json.Email }}",
+            "Question": "={{ $('ref').item.json.Question }}",
+            "Answer": "={{ $('ref').item.json.Answer }}",
+            "Tags": "={{ $json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "IsTrusted",
+              "displayName": "IsTrusted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Answer",
+              "displayName": "Answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tags",
+              "displayName": "Tags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        -96
+      ],
+      "id": "c4730db6-7866-4b00-bc9c-7a7ba041270a",
+      "name": "Insert row",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "notesInFlow": true
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "is n8n.io email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is n8n.io email?": {
+      "main": [
+        [
+          {
+            "node": "IsTrusted True?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IsTrusted False?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsTrusted True?": {
+      "main": [
+        [
+          {
+            "node": "ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsTrusted False?": {
+      "main": [
+        [
+          {
+            "node": "ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ref": {
+      "main": [
+        [
+          {
+            "node": "Add Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Add Tags",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Tags": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "dynamic",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 120,
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "Name": "Omotosho Fadilulahi Ademola",
+          "Email": "fadilulahiademola2@n8n.io",
+          "Question": "How do i become an n8n ambassador",
+          "Answer": "All community members of n8n are able to apply to become an ambassador, More details on this page:\r\nhttps://www.notion.so/n8n/Become-an-ambassador-d883b2a130e5448faedbebe5139187ea",
+          "submittedAt": "2026-04-29T19:23:27.835+01:00",
+          "formMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "6557dc83-665f-4139-bd52-95eabecd035c",
+  "activeVersionId": "6557dc83-665f-4139-bd52-95eabecd035c",
+  "versionCounter": 335,
+  "triggerCount": 1,
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-04-29T21:49:34.000Z",
+    "createdAt": "2026-04-29T21:45:13.174Z",
+    "versionId": "6557dc83-665f-4139-bd52-95eabecd035c",
+    "workflowId": "xqhUPC7pBShvnMZt",
+    "nodes": [
+      {
+        "parameters": {
+          "formTitle": "QA Submission",
+          "formFields": {
+            "values": [
+              {
+                "fieldLabel": "Name"
+              },
+              {
+                "fieldLabel": "Email"
+              },
+              {
+                "fieldLabel": "Question"
+              },
+              {
+                "fieldLabel": "Answer",
+                "fieldType": "textarea"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.formTrigger",
+        "typeVersion": 2.5,
+        "position": [
+          32,
+          -96
+        ],
+        "id": "11918acd-519a-4c32-a57e-2820ba45fb5c",
+        "name": "On form submission",
+        "webhookId": "6f822e0d-ed9d-4e55-b973-3ace780d20c2",
+        "alwaysOutputData": true,
+        "executeOnce": true,
+        "retryOnFail": true,
+        "notesInFlow": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "6cf4463c-aabf-4d5d-9530-af1e666ef403",
+                "leftValue": "={{ $json.Email }}",
+                "rightValue": "=n8n.io",
+                "operator": {
+                  "type": "string",
+                  "operation": "contains"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          256,
+          -96
+        ],
+        "id": "bfd2f852-adea-4dae-9845-c2c5eaf0fef3",
+        "name": "is n8n.io email?"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "843f97e7-7cfd-42d4-ad4b-4bf339573689",
+                "name": "IsTrusted",
+                "value": "={{ true }}",
+                "type": "boolean"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          480,
+          -192
+        ],
+        "id": "363279ce-0d22-48f7-8ebd-002f1f015feb",
+        "name": "IsTrusted True?"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "843f97e7-7cfd-42d4-ad4b-4bf339573689",
+                "name": "IsTrusted",
+                "value": "={{ false}}",
+                "type": "boolean"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          480,
+          0
+        ],
+        "id": "6b216c4d-61b5-48ff-9ee6-57dc2f430d3d",
+        "name": "IsTrusted False?"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          704,
+          -96
+        ],
+        "id": "4bebbaf7-723d-4d59-891f-30b996e2bb62",
+        "name": "ref"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-5-mini"
+          },
+          "builtInTools": {},
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          1008,
+          128
+        ],
+        "id": "5b2cc93d-621f-4bb6-a8ac-a876cdac4f52",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "23ouBWU1rOfp5m2X",
+            "name": "n8n free OpenAI API credits"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Analyze the following question and answer and output relevant tags\n\nQuestion: {{ $json.Question }}\n\nAnswer: {{ $json.Answer }}",
+          "hasOutputParser": true,
+          "messages": {
+            "messageValues": [
+              {
+                "message": "You  are a content tagging expert. Your task is to analyze Question and Answer submission and generate relevant descriptive tags that categorize the content based on topic, key concepts, and technical terms. Always provide 4-8 tags as a comma separated list. Keep tags short and focused in individual length.\n\nExample Output:\npartner, partnerships, agency, external contractors, lead referral"
+              }
+            ]
+          },
+          "batching": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.9,
+        "position": [
+          928,
+          -96
+        ],
+        "id": "c3f418f8-a983-4e8c-a9d1-99f4226fed06",
+        "name": "Add Tags"
+      },
+      {
+        "parameters": {
+          "dataTableId": {
+            "__rl": true,
+            "value": "F1t9Pks7l4HclDri",
+            "mode": "list",
+            "cachedResultName": "AI Entry Flow Agent",
+            "cachedResultUrl": "/projects/zwrmZYtvxhiK7V6V/datatables/F1t9Pks7l4HclDri"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "IsTrusted": "={{ $('IsTrusted True?').item.json.IsTrusted }}",
+              "Name": "={{ $('IsTrusted True?').item.json.Name }}",
+              "Email": "={{ $('ref').item.json.Email }}",
+              "Question": "={{ $('ref').item.json.Question }}",
+              "Answer": "={{ $('ref').item.json.Answer }}",
+              "Tags": "={{ $json.text }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "IsTrusted",
+                "displayName": "IsTrusted",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Question",
+                "displayName": "Question",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Answer",
+                "displayName": "Answer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Tags",
+                "displayName": "Tags",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "optimizeBulk": false
+          }
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1280,
+          -96
+        ],
+        "id": "c4730db6-7866-4b00-bc9c-7a7ba041270a",
+        "name": "Insert row",
+        "alwaysOutputData": true,
+        "executeOnce": true,
+        "retryOnFail": true,
+        "notesInFlow": true
+      }
+    ],
+    "connections": {
+      "On form submission": {
+        "main": [
+          [
+            {
+              "node": "is n8n.io email?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "is n8n.io email?": {
+        "main": [
+          [
+            {
+              "node": "IsTrusted True?",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "IsTrusted False?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IsTrusted True?": {
+        "main": [
+          [
+            {
+              "node": "ref",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IsTrusted False?": {
+        "main": [
+          [
+            {
+              "node": "ref",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ref": {
+        "main": [
+          [
+            {
+              "node": "Add Tags",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Add Tags",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Add Tags": {
+        "main": [
+          [
+            {
+              "node": "Insert row",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Fadilulahi Ademola",
+    "name": "S1",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-29T21:49:34.788Z",
+        "id": 1,
+        "workflowId": "xqhUPC7pBShvnMZt",
+        "versionId": "6557dc83-665f-4139-bd52-95eabecd035c",
+        "event": "activated",
+        "userId": "7b42138b-472d-4a68-9d3c-debd4fafc128"
+      },
+      {
+        "createdAt": "2026-04-29T21:51:38.366Z",
+        "id": 3,
+        "workflowId": "xqhUPC7pBShvnMZt",
+        "versionId": "6557dc83-665f-4139-bd52-95eabecd035c",
+        "event": "activated",
+        "userId": "7b42138b-472d-4a68-9d3c-debd4fafc128"
+      },
+      {
+        "createdAt": "2026-04-29T21:51:38.239Z",
+        "id": 2,
+        "workflowId": "xqhUPC7pBShvnMZt",
+        "versionId": "6557dc83-665f-4139-bd52-95eabecd035c",
+        "event": "deactivated",
+        "userId": "7b42138b-472d-4a68-9d3c-debd4fafc128"
+      }
+    ]
+  },
+  "homeProject": {
+    "id": "zwrmZYtvxhiK7V6V",
+    "type": "personal",
+    "name": "Fadilulahi Ademola <fadilulahiademola2@gmail.com>",
+    "icon": null
+  },
+  "sharedWithProjects": [],
+  "usedCredentials": [
+    {
+      "id": "23ouBWU1rOfp5m2X",
+      "name": "n8n free OpenAI API credits",
+      "type": "openAiApi",
+      "currentUserHasAccess": true,
+      "homeProject": {
+        "id": "zwrmZYtvxhiK7V6V",
+        "type": "personal",
+        "name": "Fadilulahi Ademola <fadilulahiademola2@gmail.com>",
+        "icon": null
+      },
+      "sharedWithProjects": []
+    }
+  ],
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "4e2e41ac76291fee454b384cab69270153a664a725bebed0531f0c71348befa8"
+}
